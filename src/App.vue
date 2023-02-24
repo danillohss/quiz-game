@@ -11,7 +11,7 @@
       <section class="result" v-if="this.result">
         <h4 v-if="this.chosen_answer != this.correctAnswer"> Incorrect answer &#10060;</h4>
         <h4 v-else> Congratulations correct answer &#9989;</h4>
-        <button class="send">Next Question</button>
+        <button @click="getNewQuestion" class="send">Next Question</button>
       </section>
 
     </div>
@@ -32,6 +32,15 @@ export default {
     }
   },
   methods: {
+    async getNewQuestion() {
+      await this.axios.get('https://opentdb.com/api.php?amount=1&category=18')
+        .then((response) => {
+          this.question = response.data.results[0].question;
+          this.incorrectAnswers = response.data.results[0].incorrect_answers;
+          this.correctAnswer = response.data.results[0].correct_answer;
+          this.reset();
+        })
+    },
     submitAnswer() {
       this.result = true;
       if (!this.chosen_answer) {
@@ -44,7 +53,12 @@ export default {
           console.log('Incorrect answer')
         }
       }
-    }
+    },
+    reset() {
+      this.result = false;
+      this.answerSubmitted = false;
+      this.chosen_answer = null;
+    },
   },
   computed: {
     answers() {
@@ -53,14 +67,8 @@ export default {
       return answers;
     },
   },
-  async created() {
-    await this.axios.get('https://opentdb.com/api.php?amount=1&category=18')
-      .then((response) => {
-        this.question = response.data.results[0].question;
-        this.incorrectAnswers = response.data.results[0].incorrect_answers;
-        this.correctAnswer = response.data.results[0].correct_answer;
-
-      })
+  created() {
+    this.getNewQuestion();
   },
 
 }
@@ -96,6 +104,11 @@ button.send {
   border: 1px solid #1867c0;
   cursor: pointer;
   border-radius: 5px;
+  transition: all 0.5s;
+}
+
+button.send:hover {
+  background-color: #8608ec;
 }
 
 section.score {
